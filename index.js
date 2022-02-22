@@ -8,7 +8,7 @@ import ColorThief from "color-thief-node";
 
 var clientId = process.env.spotifyClientId;
 var clientSecret = process.env.spotifyClientSecret;
-var redirectUri = "https://vusic-spotify.herokuapp.com/callback";
+var redirectUri = process.env.spotifyCallbackUri;
 var state;
 
 var app = express();

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, width=device-width, height=device-height, viewport-fit=cover">
+    <title>vusic</title>
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
+  <body>
+    <!--Media selection screen-->
+    <div id="center-container" class="container">
+      <div id="track-info" class="container">
+        <span id="track-title">play a song!</span>
+        <span id="track-artist" class="small"></span>
+      </div>
+    </div>
+
+    <span id="vtag">Vusic</span>
+
+    <canvas id="audio-visualizer" class="visualizer"></canvas>
+
+	  <script src="js/medium.js" type="module"></script>
+    <script>
+      document.querySelector("#vtag").addEventListener("click", event => {
+        let elem = document.querySelector("#track-info");
+
+        if(elem.style.visibility != "hidden") {
+          elem.style.visibility = "hidden";
+        } else {
+          elem.style.visibility = "visible";
+        }
+      });
+    </script>
+  </body>
+</html>

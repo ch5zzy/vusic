@@ -119,3 +119,10 @@ button img {
   padding: 0px;
   z-index : -1;
 }
+
+/*Track image*/
+#track-image {
+  display: none;
+  border-radius: 50%;
+  width: 20%;
+}

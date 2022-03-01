@@ -5,6 +5,7 @@ import SpotifyApi from "./spotifyapi.js";
 let visTimer;
 var circleRadius = 0;
 var maxCircleRadius;
+var drawCircle = true;
 var circleColor = new Color(255, 255, 255);
 var increase = false;
 var rot = 0;
@@ -14,7 +15,24 @@ var circleSize;
 var numCircles = 14;
 var circleInterval = 2 * Math.PI / numCircles;
 
+let trackImg = document.querySelector("#track-image");
+let trackInfo = document.querySelector("#track-info");
+
 updateCanvasSize();
+
+document.querySelector("#vtag").addEventListener("click", event => {
+  if(trackInfo.style.visibility != "hidden") {
+    trackInfo.style.visibility = "hidden";
+    trackInfo.style.display = "none";
+    trackImg.style.display = "block";
+    drawCircle = false;
+  } else {
+    trackInfo.style.visibility = "visible";
+    trackInfo.style.display = "flex";
+    trackImg.style.display = "none";
+    drawCircle = true;
+  }
+});
 
 var accessToken = Cookie.get("access_token");
 var refreshToken = Cookie.get("refresh_token");
@@ -32,6 +50,7 @@ spotifyApi.updateFunc = () => {
   if(spotifyApi.trackTitle != "") {
     document.querySelector("#track-title").innerHTML = spotifyApi.trackTitle.toLowerCase();
     document.querySelector("#track-artist").innerHTML = spotifyApi.trackArtistsNames.toLowerCase();
+    document.querySelector("#track-image").src = spotifyApi.trackImage;
 
     const trackColor = spotifyApi.trackColor;
     const textColor = Color.textColor(trackColor);
@@ -80,9 +99,20 @@ function drawBeatCircle() {
   ctx.fillStyle = ctx.strokeStyle;
   ctx.lineWidth = 8;
 
-  ctx.beginPath();
-  ctx.arc(canvas.width/2, canvas.height/2, circleRadius, 0, 2 * Math.PI);
-  ctx.stroke();
+  if(drawCircle) {
+    ctx.beginPath();
+    ctx.arc(canvas.width/2, canvas.height/2, circleRadius, 0, 2 * Math.PI);
+    ctx.stroke();
+  } else {
+    trackImg.style.transform = "rotate(" + (-rot) + "rad)";
+    trackImg.style.width = maxCircleRadius * 1.5 + "px";
+    /*
+    if(spotifyApi.trackImage != "")
+      trackImg.style.border = (circleRadius / maxCircleRadius) * (maxCircleRadius / 5) + "px solid " + circleColor.rgba(0.2);
+    else 
+      trackImg.style.border = "none";
+    */
+  }
 
   var maxDim = Math.max(canvas.width, canvas.height);
   var dir = -1;

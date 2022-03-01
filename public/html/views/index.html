@@ -18,6 +18,7 @@
         <span id="track-title">play a song!</span>
         <span id="track-artist" class="small"></span>
       </div>
+      <img id="track-image" src="" />
     </div>
 
     <span id="vtag">Vusic</span>
@@ -25,16 +26,5 @@
     <canvas id="audio-visualizer" class="visualizer"></canvas>
 
     <script src="js/medium.js" type="module"></script>
-    <script>
-      document.querySelector("#vtag").addEventListener("click", event => {
-        let elem = document.querySelector("#track-info");
-
-        if(elem.style.visibility != "hidden") {
-          elem.style.visibility = "hidden";
-        } else {
-          elem.style.visibility = "visible";
-        }
-      });
-    </script>
   </body>
 </html>

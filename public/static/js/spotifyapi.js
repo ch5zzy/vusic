@@ -9,6 +9,7 @@ export default class SpotifyApi {
   #trackId;
   #color;
   #colors;
+  #image;
   #tempo;
   #pollTimer;
   #beatTimer;
@@ -23,6 +24,7 @@ export default class SpotifyApi {
     this.#trackId = "";
     this.#color = new Color();
     this.#colors = [];
+    this.#image = "";
     this.#tempo = undefined;
     this.#updateFunc = () => {};
     this.#beatFunc = () => {};
@@ -50,6 +52,9 @@ export default class SpotifyApi {
   }
   get trackColors() {
     return this.#colors;
+  }
+  get trackImage() {
+    return this.#image;
   }
   get trackTempo() {
     return this.#tempo;
@@ -107,6 +112,9 @@ export default class SpotifyApi {
         this.#trackId = data.item.id;
         this.#color = Color.cast(data.item.color);
         this.#colors = Color.castArray(data.item.colors);
+        this.#image = "";
+        if(data.item.album.images.length != 0)
+          this.#image = data.item.album.images[0].url;
 
         this.#getAudioFeatures(features => {
           if(this.#tempo != features.tempo) {

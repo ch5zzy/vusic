@@ -28,7 +28,7 @@ export default class Cookie {
   }
 
   static delete(key) {
-    var currVal = localStorage.getItem(key) || null;
+    var currVal = get(key);
     localStorage.removeItem(key);
     return currVal;
   }

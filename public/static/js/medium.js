@@ -140,10 +140,7 @@ function increaseRot() {
       maxRot = maxRot - 2 * Math.PI;
     }
   } else {
-    rot += 0.001;
-    if(rot > 2 * Math.PI) {
-      rot = rot - 2 * Math.PI;
-    }
+    rot = (rot + 0.001) % (2 * Math.PI);
   }
 }
 

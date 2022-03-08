@@ -1,5 +1,4 @@
 import express from "express";
-import querystring from "querystring";
 import fetch from "node-fetch";
 import uniqid from "uniqid";
 import path from "path";
@@ -13,6 +12,10 @@ var state;
 
 var app = express();
 
+function stringify(data) {
+  return (new URLSearchParams(data)).toString();
+}
+
 app.get("/login", function(req, res) {
   //create state string for validation
   state = uniqid("vusic-spotify-");
@@ -21,7 +24,7 @@ app.get("/login", function(req, res) {
 
   //redirect to spotify login with desired scope
   res.redirect("https://accounts.spotify.com/authorize?" +
-    querystring.stringify({
+    stringify({
       response_type: "code",
       client_id: clientId,
       scope: scope,
@@ -37,7 +40,7 @@ app.get("/callback", function(req, res) {
   //ensure state strings match
   if(reqState === null || reqState != state) {
     res.redirect("/#" +
-      querystring.stringify({
+      stringify({
         error: "state_mismatch"
       }));
   }
@@ -53,7 +56,7 @@ app.get("/callback", function(req, res) {
       "Authorization": "Basic " + (new Buffer.from(clientId + ":" + clientSecret).toString("base64")),
       "Content-Type": "application/x-www-form-urlencoded"
     },
-    body: querystring.stringify(body)
+    body: stringify(body)
   };
 
   //fetch the spotify access token
@@ -61,7 +64,7 @@ app.get("/callback", function(req, res) {
     .then(function(response) {
       if(response && response.ok) {
         response.json().then(function(data) {
-          res.redirect("/?" + querystring.stringify({
+          res.redirect("/?" + stringify({
             access_token: data.access_token,
             refresh_token: data.refresh_token
           }));
@@ -86,7 +89,7 @@ app.get("/refresh_token", function(req, res) {
       "Authorization": "Basic " + (new Buffer.from(clientId + ":" + clientSecret).toString("base64")),
       "Content-Type": "application/x-www-form-urlencoded"
     },
-    body: querystring.stringify(body)
+    body: stringify(body)
   };
 
   fetch("https://accounts.spotify.com/api/token", authOptions)
@@ -126,7 +129,7 @@ app.get("/spotify-api", function(req, res) {
   //check that request type, endpoint, and access token were provided
   if(reqType === null || endpoint === null || accessToken == null) {
     res.redirect("/#" +
-      querystring.stringify({
+      stringify({
         error: "invalid_api_request"
       }));
   }
@@ -158,7 +161,7 @@ app.get("/current-track", function(req, res) {
   //check that access token was provided
   if(accessToken == null) {
     res.redirect("/#" +
-      querystring.stringify({
+      stringify({
         error: "invalid_api_request"
       }));
   }

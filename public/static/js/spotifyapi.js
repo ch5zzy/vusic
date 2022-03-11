@@ -6,6 +6,7 @@ export default class SpotifyApi {
   #refreshToken;
   #title;
   #artists;
+  #album;
   #trackId;
   #color;
   #colors;
@@ -21,6 +22,7 @@ export default class SpotifyApi {
     this.#refreshToken = refreshToken;
     this.#title = "";
     this.#artists = [];
+    this.#album = "";
     this.#trackId = "";
     this.#color = new Color();
     this.#colors = [];
@@ -43,6 +45,9 @@ export default class SpotifyApi {
       artistNames.push(artist.name);
     });
     return artistNames.join(", ");
+  }
+  get trackAlbum() {
+    return this.#album;
   }
   get trackId() {
     return this.#trackId;
@@ -109,6 +114,7 @@ export default class SpotifyApi {
         data.item.name != this.#title)) {
         this.#title = data.item.name;
         this.#artists = data.item.artists;
+        this.#album = data.item.album.name;
         this.#trackId = data.item.id;
         this.#color = Color.cast(data.item.color);
         this.#colors = Color.castArray(data.item.colors);

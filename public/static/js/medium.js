@@ -5,7 +5,7 @@ import SpotifyApi from "./spotifyapi.js";
 let visTimer;
 var circleRadius = 0;
 var maxCircleRadius;
-var drawCircle = true;
+var drawCircle = false;
 var circleColor = new Color(255, 255, 255);
 var increase = false;
 var rot = 0;
@@ -14,6 +14,7 @@ var canvas, ctx;
 var circleSize;
 var numCircles = 14;
 var circleInterval = 2 * Math.PI / numCircles;
+var circleText = "play a song!";
 
 let trackImg = document.querySelector("#track-image");
 let trackInfo = document.querySelector("#track-info");
@@ -23,7 +24,7 @@ let trackArtistAlbum = document.querySelector("#track-artist-album");
 updateCanvasSize();
 
 document.querySelector("#vtag").addEventListener("click", event => {
-  if (trackInfo.style.visibility != "hidden") {
+  if (drawCircle) {
     trackInfo.style.visibility = "hidden";
     trackInfo.style.display = "none";
     trackImg.style.display = "block";
@@ -50,9 +51,13 @@ spotifyApi.beatFunc = () => {
 }
 spotifyApi.updateFunc = () => {
   if (spotifyApi.trackTitle != "") {
+    circleText = "";
     trackTitle.innerHTML = spotifyApi.trackTitle.toLowerCase();
+    circleText += spotifyApi.trackTitle.toLowerCase();
     trackArtistAlbum.innerHTML = spotifyApi.trackArtistsNames.toLowerCase() +
       (spotifyApi.trackAlbum != "" ? (" &#183; " + spotifyApi.trackAlbum.toLowerCase()) : "");
+    circleText += " · " + spotifyApi.trackArtistsNames.toLowerCase() +
+      (spotifyApi.trackAlbum != "" ? (" · " + spotifyApi.trackAlbum.toLowerCase()) : "");
     document.querySelector("#track-image").src = spotifyApi.trackImage;
 
     const trackColor = spotifyApi.trackColor;
@@ -109,6 +114,7 @@ function drawBeatCircle() {
   } else {
     trackImg.style.transform = "rotate(" + (-rot) + "rad)";
     trackImg.style.width = maxCircleRadius * 1.5 + "px";
+    drawTextAlongArc(setStringLen(circleText, 30, 80));
     /*
     if (spotifyApi.trackImage != "")
       trackImg.style.border = (circleRadius / maxCircleRadius) * (maxCircleRadius / 5) + "px solid " + circleColor.rgba(0.2);
@@ -147,9 +153,38 @@ function increaseRot() {
   }
 }
 
+function drawTextAlongArc(str){
+  var angle = 1.9 * Math.PI;
+  ctx.save();
+  ctx.font = "80% Major Mono Display";
+  ctx.strokeStyle = circleColor.rgba(1);
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.translate(canvas.width/2, canvas.height/2);
+  ctx.rotate(-1 * angle/2);
+  ctx.rotate(-1 * (angle/str.length) / 2);
+  ctx.rotate(-1 * rot);
+  for (var n = 0; n < str.length; n++) {
+      ctx.rotate(angle/str.length);
+      ctx.save();
+      ctx.translate(0, -1 * (maxCircleRadius - 20));
+      var char = str[n];
+      ctx.fillText(char, 0, 0);
+      ctx.restore();
+  }
+  ctx.restore();
+}
+
 function updateCanvasSize() {
   canvas = document.querySelector("#audio-visualizer");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   ctx = canvas.getContext("2d");
+}
+
+function setStringLen(str, minLen, maxLen) {
+  if (str.length < minLen)
+    str += " ".repeat(minLen - str.length);
+  if (str.length > maxLen)
+    str = str.slice(0, maxLen - 3) + "...";
+  return str;
 }

@@ -120,9 +120,15 @@ button img {
   z-index : -1;
 }
 
+/* Track info */
+#track-info {
+  display: none;
+  visibility: hidden;
+}
+
 /*Track image*/
 #track-image {
-  display: none;
+  display: block;
   border-radius: 50%;
   width: 20%;
 }

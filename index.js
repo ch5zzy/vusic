@@ -16,6 +16,10 @@ function stringify(data) {
   return (new URLSearchParams(data)).toString();
 }
 
+function getPlaylistImg(id, func) {
+  fetch("/get-playlist-image/" + id).then(func);
+}
+
 app.get("/login", function(req, res) {
   //create state string for validation
   state = uniqid("vusic-spotify-");
@@ -155,6 +159,38 @@ app.get("/spotify-api", function(req, res) {
     });
 });
 
+app.get("/get-playlist-image", function(req, res) {
+  var playlistId = req.query.playlistId || null;
+  var accessToken = req.query.access_token || null;
+
+  //check that access token was provided
+  if(accessToken == null) {
+    res.redirect("/#" +
+      stringify({
+        error: "invalid_api_request"
+      }));
+  }
+
+  var authOptions = {
+    method: "GET",
+    headers: {
+      "Authorization": "Bearer " + accessToken,
+      "Content-Type": "application/json"
+    },
+  }
+
+  fetch("https://api.spotify.com/v1/playlists/" + playlistId, authOptions)
+    .then(function(response) {
+      if(response && response.status == 200) {
+        response.json().then(function(data) {
+          res.send(data.images[0].url);
+        });
+      } else {
+        res.send({});
+      }
+    });
+});
+
 app.get("/current-track", function(req, res) {
   var accessToken = req.query.access_token || null;
 
@@ -179,19 +215,47 @@ app.get("/current-track", function(req, res) {
       if(response && response.status == 200) {
         response.json().then(function(data) {
           if(data.item != undefined) {
-            if(!data.item.is_local) {
-              ColorThief.getColorFromURL(data.item.album.images[0].url).then(color => {
-                data.item.color = new Color(...color);
-                ColorThief.getPaletteFromURL(data.item.album.images[0].url).then(palette => {
-                  var colors = [];
-                  palette.forEach(swatch => {
-                    colors.push(new Color(...swatch));
+            if(!data.item.is_local || (data.item.is_local && data.context.type == "playlist")) {
+              var imgUrl;
+              if (!data.item.is_local) {
+                imgUrl = data.item.album.images[0].url;
+                ColorThief.getColorFromURL(imgUrl).then(color => {
+                  data.item.color = new Color(...color);
+                  ColorThief.getPaletteFromURL(imgUrl).then(palette => {
+                    var colors = [];
+                    palette.forEach(swatch => {
+                      colors.push(new Color(...swatch));
+                    });
+                    data.item.colors = colors;
+  
+                    res.send(data);
                   });
-                  data.item.colors = colors;
-
-                  res.send(data);
                 });
-              });
+              } else {
+                fetch("https://api.spotify.com/v1/playlists/" + data.context.uri.split(":")[2], authOptions)
+                  .then(function(response2) {
+                    if(response2 && response2.status == 200) {
+                      response2.json().then(function(data2) {
+                        imgUrl = data2.images[0].url;
+                        data.item.album.images = [{ url: imgUrl }];
+                        ColorThief.getColorFromURL(imgUrl).then(color => {
+                          data.item.color = new Color(...color);
+                          ColorThief.getPaletteFromURL(imgUrl).then(palette => {
+                            var colors = [];
+                            palette.forEach(swatch => {
+                              colors.push(new Color(...swatch));
+                            });
+                            data.item.colors = colors;
+          
+                            res.send(data);
+                          });
+                        });
+                      });
+                    } else {
+                      res.send({});
+                    }
+                  });
+              }
             } else {
               data.item.color = new Color(15, 15, 15);
               data.item.colors = [new Color(63, 63, 63), new Color(2, 2, 2),

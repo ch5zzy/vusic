@@ -36,7 +36,10 @@ function getPlaylistImg(playlistId, accessToken, func) {
     .then(function(response) {
       if (response && response.status == 200) {
         response.json().then(function(data) {
-          func(data.images[0].url);
+          if (data.images.length != 0)
+            func(data.images[0].url);
+          else
+            func("");
         });
       } else {
         func("");
@@ -45,6 +48,14 @@ function getPlaylistImg(playlistId, accessToken, func) {
 }
 
 function getImgColors(imgUrl, func) {
+  if (imgUrl == "") {
+    var color = new Color(15, 15, 15);
+    var colors = [new Color(63, 63, 63), new Color(2, 2, 2),
+      new Color(1, 1, 1), new Color(5, 5, 5), new Color(45, 45, 45)];
+    func(color, colors);
+    return;
+  }
+
   ColorThief.getColorFromURL(imgUrl).then(color => {
     color = new Color(...color);
     ColorThief.getPaletteFromURL(imgUrl).then(palette => {
@@ -248,10 +259,11 @@ app.get("/current-track", function(req, res) {
                 });
               }
             } else {
-              data.item.color = new Color(15, 15, 15);
-              data.item.colors = [new Color(63, 63, 63), new Color(2, 2, 2),
-                new Color(1, 1, 1), new Color(5, 5, 5), new Color(45, 45, 45)];
-              res.send(data);
+              getImgColors("", function(color, colors) {
+                data.item.color = color;
+                data.item.colors = colors;
+                res.send(data);
+              });
             }
           } else {
             res.send({});

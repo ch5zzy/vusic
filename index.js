@@ -16,8 +16,46 @@ function stringify(data) {
   return (new URLSearchParams(data)).toString();
 }
 
-function getPlaylistImg(id, func) {
-  fetch("/get-playlist-image/" + id).then(func);
+function getPlaylistImg(playlistId, accessToken, func) {
+  //check that access token was provided
+  if (accessToken == null) {
+      return stringify({
+        error: "invalid_api_request"
+      });
+  }
+
+  var authOptions = {
+    method: "GET",
+    headers: {
+      "Authorization": "Bearer " + accessToken,
+      "Content-Type": "application/json"
+    },
+  }
+
+  fetch("https://api.spotify.com/v1/playlists/" + playlistId, authOptions)
+    .then(function(response) {
+      if (response && response.status == 200) {
+        response.json().then(function(data) {
+          func(data.images[0].url);
+        });
+      } else {
+        func("");
+      }
+    });
+}
+
+function getImgColors(imgUrl, func) {
+  ColorThief.getColorFromURL(imgUrl).then(color => {
+    color = new Color(...color);
+    ColorThief.getPaletteFromURL(imgUrl).then(palette => {
+      var colors = [];
+      palette.forEach(swatch => {
+        colors.push(new Color(...swatch));
+      });
+
+      func(color, colors);
+    });
+  });
 }
 
 app.get("/login", function(req, res) {
@@ -42,7 +80,7 @@ app.get("/callback", function(req, res) {
   var reqState = req.query.state || null;
 
   //ensure state strings match
-  if(reqState === null || reqState != state) {
+  if (reqState === null || reqState != state) {
     res.redirect("/#" +
       stringify({
         error: "state_mismatch"
@@ -57,7 +95,8 @@ app.get("/callback", function(req, res) {
   var authOptions = {
     method: "POST",
     headers: {
-      "Authorization": "Basic " + (new Buffer.from(clientId + ":" + clientSecret).toString("base64")),
+      "Authorization": "Basic " + (new Buffer.from(clientId + ":" +
+        clientSecret).toString("base64")),
       "Content-Type": "application/x-www-form-urlencoded"
     },
     body: stringify(body)
@@ -66,7 +105,7 @@ app.get("/callback", function(req, res) {
   //fetch the spotify access token
   fetch("https://accounts.spotify.com/api/token", authOptions)
     .then(function(response) {
-      if(response && response.ok) {
+      if (response && response.ok) {
         response.json().then(function(data) {
           res.redirect("/?" + stringify({
             access_token: data.access_token,
@@ -90,7 +129,8 @@ app.get("/refresh_token", function(req, res) {
   var authOptions = {
     method: "POST",
     headers: {
-      "Authorization": "Basic " + (new Buffer.from(clientId + ":" + clientSecret).toString("base64")),
+      "Authorization": "Basic " + (new Buffer.from(clientId + ":" +
+        clientSecret).toString("base64")),
       "Content-Type": "application/x-www-form-urlencoded"
     },
     body: stringify(body)
@@ -98,7 +138,7 @@ app.get("/refresh_token", function(req, res) {
 
   fetch("https://accounts.spotify.com/api/token", authOptions)
     .then(function(response) {
-      if(response && response.ok) {
+      if (response && response.ok) {
         response.json().then(function(data) {
           res.send({
             access_token: data.access_token,
@@ -113,12 +153,13 @@ app.get("/refresh_token", function(req, res) {
 });
 
 app.get("/", function(req, res) {
-  if(!req.query.access_token) {
+  if (!req.query.access_token) {
     res.sendFile(path.join(path.resolve(), "public/html/views/login.html"));
     return;
   }
 
-  res.sendFile(path.join(path.resolve(), "public/html/actions/saveAccessToken.html"));
+  res.sendFile(path.join(path.resolve(),
+    "public/html/actions/saveAccessToken.html"));
 });
 
 app.get("/me", function(req, res) {
@@ -131,7 +172,7 @@ app.get("/spotify-api", function(req, res) {
   var accessToken = req.query.access_token || null;
 
   //check that request type, endpoint, and access token were provided
-  if(reqType === null || endpoint === null || accessToken == null) {
+  if (reqType === null || endpoint === null || accessToken == null) {
     res.redirect("/#" +
       stringify({
         error: "invalid_api_request"
@@ -149,41 +190,9 @@ app.get("/spotify-api", function(req, res) {
   //perform api request
   fetch("https://api.spotify.com/v1/" + endpoint, authOptions)
     .then(function(response) {
-      if(response && response.status == 200) {
+      if (response && response.status == 200) {
         response.json().then(function(data) {
           res.send(data);
-        });
-      } else {
-        res.send({});
-      }
-    });
-});
-
-app.get("/get-playlist-image", function(req, res) {
-  var playlistId = req.query.playlistId || null;
-  var accessToken = req.query.access_token || null;
-
-  //check that access token was provided
-  if(accessToken == null) {
-    res.redirect("/#" +
-      stringify({
-        error: "invalid_api_request"
-      }));
-  }
-
-  var authOptions = {
-    method: "GET",
-    headers: {
-      "Authorization": "Bearer " + accessToken,
-      "Content-Type": "application/json"
-    },
-  }
-
-  fetch("https://api.spotify.com/v1/playlists/" + playlistId, authOptions)
-    .then(function(response) {
-      if(response && response.status == 200) {
-        response.json().then(function(data) {
-          res.send(data.images[0].url);
         });
       } else {
         res.send({});
@@ -195,7 +204,7 @@ app.get("/current-track", function(req, res) {
   var accessToken = req.query.access_token || null;
 
   //check that access token was provided
-  if(accessToken == null) {
+  if (accessToken == null) {
     res.redirect("/#" +
       stringify({
         error: "invalid_api_request"
@@ -212,49 +221,31 @@ app.get("/current-track", function(req, res) {
 
   fetch("https://api.spotify.com/v1/me/player/currently-playing", authOptions)
     .then(function(response) {
-      if(response && response.status == 200) {
+      if (response && response.status == 200) {
         response.json().then(function(data) {
-          if(data.item != undefined) {
-            if(!data.item.is_local || (data.item.is_local && data.context.type == "playlist")) {
-              var imgUrl;
+          if (data.item != undefined) {
+            if (!data.item.is_local || (data.item.is_local && data.context.type
+              == "playlist")) {
               if (!data.item.is_local) {
-                imgUrl = data.item.album.images[0].url;
-                ColorThief.getColorFromURL(imgUrl).then(color => {
-                  data.item.color = new Color(...color);
-                  ColorThief.getPaletteFromURL(imgUrl).then(palette => {
-                    var colors = [];
-                    palette.forEach(swatch => {
-                      colors.push(new Color(...swatch));
-                    });
+                var imgUrl = data.item.album.images[0].url;
+                getImgColors(imgUrl, function(color, colors) {
+                  data.item.color = color;
+                  data.item.colors = colors;
+                  res.send(data);
+                });
+              } else {
+                getPlaylistImg(data.context.uri.split(":")[2], accessToken,
+                  function(imgUrl) {
+                  getImgColors(imgUrl, function(color, colors) {
+                    if (data.item.album != undefined)
+                      data.item.album.images = [{ url: imgUrl }];
+                    else
+                      data.item.album = { images: [{ url: imgUrl }]};
+                    data.item.color = color;
                     data.item.colors = colors;
-  
                     res.send(data);
                   });
                 });
-              } else {
-                fetch("https://api.spotify.com/v1/playlists/" + data.context.uri.split(":")[2], authOptions)
-                  .then(function(response2) {
-                    if(response2 && response2.status == 200) {
-                      response2.json().then(function(data2) {
-                        imgUrl = data2.images[0].url;
-                        data.item.album.images = [{ url: imgUrl }];
-                        ColorThief.getColorFromURL(imgUrl).then(color => {
-                          data.item.color = new Color(...color);
-                          ColorThief.getPaletteFromURL(imgUrl).then(palette => {
-                            var colors = [];
-                            palette.forEach(swatch => {
-                              colors.push(new Color(...swatch));
-                            });
-                            data.item.colors = colors;
-          
-                            res.send(data);
-                          });
-                        });
-                      });
-                    } else {
-                      res.send({});
-                    }
-                  });
               }
             } else {
               data.item.color = new Color(15, 15, 15);

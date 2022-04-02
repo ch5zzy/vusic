@@ -183,7 +183,8 @@ function updateCanvasSize() {
 
 function setStringLen(str, minLen, maxLen) {
   if (str.length < minLen)
-    str += " ".repeat(minLen - str.length);
+    str = " ".repeat(Math.floor((minLen - str.length)/2)) + str + 
+      " ".repeat(Math.ceil((minLen - str.length)/2));
   if (str.length > maxLen)
     str = str.slice(0, maxLen - 3) + "...";
   return str;

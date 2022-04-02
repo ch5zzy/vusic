@@ -10,6 +10,8 @@ var circleColor = new Color(255, 255, 255);
 var increase = false;
 var rot = 0;
 var maxRot = 0;
+var baseRotSpeed = 0.001;
+var rotSpeed = baseRotSpeed;
 var canvas, ctx;
 var circleSize;
 var numCircles = 14;
@@ -68,6 +70,7 @@ spotifyApi.updateFunc = () => {
     circleColor = textColor;
 
     maxRot = rot + 2 * Math.PI;
+    rotSpeed = baseRotSpeed * 80;
   }
 }
 
@@ -149,7 +152,9 @@ function increaseRot() {
       maxRot = maxRot - 2 * Math.PI;
     }
   } else {
-    rot = (rot + 0.001) % (2 * Math.PI);
+    rot = (rot + rotSpeed) % (2 * Math.PI);
+    if (rotSpeed > baseRotSpeed)
+      rotSpeed -= (rotSpeed / baseRotSpeed) * (baseRotSpeed / 80);
   }
 }
 

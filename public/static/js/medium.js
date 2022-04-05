@@ -117,7 +117,7 @@ function drawBeatCircle() {
   } else {
     trackImg.style.transform = "rotate(" + (-rot) + "rad)";
     trackImg.style.width = maxCircleRadius * 1.5 + "px";
-    drawTextAlongArc(setStringLen(circleText, 30, 80));
+    drawTextAlongArc(setStringLen(circleText, 40, 80));
     /*
     if (spotifyApi.trackImage != "")
       trackImg.style.border = (circleRadius / maxCircleRadius) * (maxCircleRadius / 5) + "px solid " + circleColor.rgba(0.2);
@@ -159,9 +159,9 @@ function increaseRot() {
 }
 
 function drawTextAlongArc(str){
-  var angle = 1.9 * Math.PI;
+  var angle = 1.95 * Math.PI;
   ctx.save();
-  ctx.font = "80% Major Mono Display";
+  ctx.font = "90% Major Mono Display";
   ctx.strokeStyle = circleColor.rgba(1);
   ctx.fillStyle = ctx.strokeStyle;
   ctx.translate(canvas.width/2, canvas.height/2);
@@ -171,7 +171,7 @@ function drawTextAlongArc(str){
   for (var n = 0; n < str.length; n++) {
       ctx.rotate(angle/str.length);
       ctx.save();
-      ctx.translate(0, -1 * (maxCircleRadius - 20));
+      ctx.translate(0, -1 * (trackImg.offsetWidth / 1.85));
       var char = str[n];
       ctx.fillText(char, 0, 0);
       ctx.restore();

@@ -20,11 +20,6 @@
       </div>
     </div>
 
-    <script>
-      const token = localStorage.getItem("access_token");
-      if(token) {
-        window.location.replace("/me");
-      }
-    </script>
+    <script src="js/checkAccessToken.js" type="module"></script>
   </body>
 </html>

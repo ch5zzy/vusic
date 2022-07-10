@@ -126,9 +126,23 @@ button img {
   visibility: hidden;
 }
 
-/*Track image*/
+/*Track image and canvas*/
 #track-image {
   display: block;
   border-radius: 50%;
   width: 20%;
+  object-fit: cover;
+  }
+  
+  #track-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    object-fit: cover;
+    display: none;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    filter: blur(10px) brightness(70%);
+    transform: scale(1.03);
 }

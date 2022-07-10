@@ -11,6 +11,7 @@ export default class SpotifyApi {
   #color;
   #colors;
   #image;
+  #canvas;
   #tempo;
   #pollTimer;
   #beatTimer;
@@ -27,9 +28,10 @@ export default class SpotifyApi {
     this.#color = new Color();
     this.#colors = [];
     this.#image = "";
+    this.#canvas = "";
     this.#tempo = undefined;
-    this.#updateFunc = () => {};
-    this.#beatFunc = () => {};
+    this.#updateFunc = () => { };
+    this.#beatFunc = () => { };
   }
 
   //getter methods
@@ -61,6 +63,9 @@ export default class SpotifyApi {
   get trackImage() {
     return this.#image;
   }
+  get trackCanvas() {
+    return this.#canvas;
+  }
   get trackTempo() {
     return this.#tempo;
   }
@@ -84,7 +89,7 @@ export default class SpotifyApi {
     fetch("/spotify-api?type=" + type + "&endpoint=" + endpoint
       + "&access_token=" + this.#accessToken)
       .then(response => {
-        if(response && response.status == 200) {
+        if (response && response.status == 200) {
           response.json().then(data => onSuccess(data));
         }
       });
@@ -94,7 +99,7 @@ export default class SpotifyApi {
   #getCurrentTrack(onSuccess) {
     fetch("/current-track?access_token=" + this.#accessToken)
       .then(response => {
-        if(response && response.status == 200) {
+        if (response && response.status == 200) {
           response.json().then(data => onSuccess(data));
         }
       });
@@ -110,7 +115,7 @@ export default class SpotifyApi {
     this.#checkToken();
 
     this.#getCurrentTrack(data => {
-      if(data && data.item && (data.item.id != this.#trackId ||
+      if (data && data.item && (data.item.id != this.#trackId ||
         data.item.name != this.#title)) {
         this.#title = data.item.name;
         this.#artists = data.item.artists;
@@ -118,18 +123,17 @@ export default class SpotifyApi {
         this.#trackId = data.item.id;
         this.#color = Color.cast(data.item.color);
         this.#colors = Color.castArray(data.item.colors);
-        this.#image = "";
-        if(data.item.album.images.length != 0)
-          this.#image = data.item.album.images[0].url;
+        this.#image = data.item.album.images.length != 0 ? data.item.album.images[0].url : "";
+        this.#canvas = data.item.canvasUrl ?? "";
 
         this.#getAudioFeatures(features => {
-          if(this.#tempo != features.tempo) {
+          if (this.#tempo != features.tempo) {
             this.#tempo = features.tempo;
             clearInterval(this.#beatTimer);
-            if(this.#tempo) {
+            if (this.#tempo) {
               this.#beatTimer = setInterval(() => {
                 this.#beat();
-              }, Math.pow(this.#tempo * (1/60000), -1));
+              }, Math.pow(this.#tempo * (1 / 60000), -1));
             }
           }
 
@@ -141,12 +145,12 @@ export default class SpotifyApi {
   }
 
   #checkToken() {
-    if(!Cookie.get("access_token")) {
+    if (!Cookie.get("access_token")) {
       fetch("/refresh_token?token=" + this.#refreshToken)
         .then(response => {
-          if(response && response.status == 200) {
+          if (response && response.status == 200) {
             response.json().then(data => {
-              if(data.access_token) {
+              if (data.access_token) {
                 this.#accessToken = data.access_token;
                 this.#refreshToken = data.refresh_token;
                 Cookie.set("access_token", this.#accessToken, 3600);
@@ -157,7 +161,7 @@ export default class SpotifyApi {
             });
           }
         });
-      }
+    }
   }
 
   //executes on every beat, according to the current track's tempo

@@ -4,6 +4,7 @@ import uniqid from "uniqid";
 import path from "path";
 import Color from "./public/static/js/color.js";
 import ColorThief from "color-thief-node";
+import { getTrackCanvases, getRecentCanvases } from "./public/static/js/canvasapi/canvases.js";
 
 var clientId = process.env.spotifyClientId;
 var clientSecret = process.env.spotifyClientSecret;
@@ -73,7 +74,7 @@ app.get("/login", function(req, res) {
   //create state string for validation
   state = uniqid("vusic-spotify-");
 
-  var scope = "user-read-currently-playing user-read-playback-position";
+  var scope = "user-read-currently-playing user-read-playback-position user-read-recently-played";
 
   //redirect to spotify login with desired scope
   res.redirect("https://accounts.spotify.com/authorize?" +
@@ -118,6 +119,7 @@ app.get("/callback", function(req, res) {
     .then(function(response) {
       if (response && response.ok) {
         response.json().then(function(data) {
+          process.env.spotifyRefreshToken = data.refresh_token;
           res.redirect("/?" + stringify({
             access_token: data.access_token,
             refresh_token: data.refresh_token
@@ -151,6 +153,7 @@ app.get("/refresh_token", function(req, res) {
     .then(function(response) {
       if (response && response.ok) {
         response.json().then(function(data) {
+          process.env.spotifyRefreshToken = data.refresh_token;
           res.send({
             access_token: data.access_token,
             refresh_token: data.refresh_token
@@ -164,7 +167,7 @@ app.get("/refresh_token", function(req, res) {
 });
 
 app.get("/", function(req, res) {
-  if (!req.query.access_token) {
+  if (!req.query.access_token || !req.query.refresh_token) {
     res.sendFile(path.join(path.resolve(), "public/html/views/login.html"));
     return;
   }
@@ -242,7 +245,13 @@ app.get("/current-track", function(req, res) {
                 getImgColors(imgUrl, function(color, colors) {
                   data.item.color = color;
                   data.item.colors = colors;
-                  res.send(data);
+
+                  getTrackCanvases([data.item]).then((canvases) => {
+                    if (canvases.length > 0)
+                      data.item.canvasUrl = canvases[0].canvasUrl;
+                    
+                    res.send(data);
+                  });
                 });
               } else {
                 getPlaylistImg(data.context.uri.split(":")[2], accessToken,
@@ -274,6 +283,8 @@ app.get("/current-track", function(req, res) {
       }
     });
 });
+
+app.get("/recent-canvases", getRecentCanvases);
 
 app.use(express.static("public/static"));
 

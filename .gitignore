@@ -1,2 +1,9 @@
-# Ignore node modules
+# Node modules
 node_modules/
+
+# Dotenv
+.env
+.env.test
+
+# macOS
+.DS_Store

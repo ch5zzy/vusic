@@ -4,11 +4,14 @@ import uniqid from "uniqid";
 import path from "path";
 import Color from "./public/static/js/color.js";
 import ColorThief from "color-thief-node";
+import * as dotenv from 'dotenv';
 import { getTrackCanvases, getRecentCanvases } from "./public/static/js/canvasapi/canvases.js";
 
-var clientId = process.env.spotifyClientId;
-var clientSecret = process.env.spotifyClientSecret;
-var redirectUri = process.env.spotifyCallbackUri;
+dotenv.config();
+
+var clientId = process.env.SPOTIFY_CLIENT_ID;
+var clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+var redirectUri = process.env.SPOTIFY_CALLBACK_URI;
 var state;
 
 var app = express();
